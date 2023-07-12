@@ -121,3 +121,47 @@ pub fn parse_out_bits(bytes_group: &str, n: usize) -> Vec<String> {
 
     parsed_bits
 }
+
+
+#[cfg(test)]
+mod tests {
+    use crate::{parse_buffer, print_bytes_in_groups, parse_out_bits};
+    
+    // Constants for parsing and buffer size
+    const SIZE_BUFFER: u8 = 8;
+    const SIZE_PARSING: u8 = 3;
+
+    #[test]
+    fn test_parse_buffer() {
+        println!("This part for parsing in 3 bits into a byte buffer:\n");
+        let arr_n: [u8; 13] = [
+            0b101, 0b001, 0b111, 0b001, 0b111, 0b000, 0b001, 0b010, 0b001, 0b011, 0b111, 0b001, 0b1110
+        ];
+
+        let (values, is_incomplete, length_occupied) = parse_buffer(&arr_n, SIZE_BUFFER, SIZE_PARSING);
+        println!("Values: {:?}", values);
+        println!("Is incomplete: {}", is_incomplete);
+        println!("Length occupied: {}", 8 -length_occupied);
+
+        for value in &values {
+            println!("{:08b}", value);
+        }
+
+        println!("\nThis part for parsing out 3 bits out of a group of byte buffer:\n");
+
+        let n = 3;
+        let buf_size = 8;
+
+        // Print the bytes in groups of `n` bytes.
+        let bytes_group_list = print_bytes_in_groups(&values, n, buf_size);
+
+        // For each bytes group, print the bits and the parsed bits.
+        for bytes_group in &bytes_group_list {
+            println!("{}", bytes_group);
+            let parsed_bits = parse_out_bits(&bytes_group, n);
+            for parsed_bit in parsed_bits {
+                println!("{}", parsed_bit);
+            }
+        }    
+    }
+}
