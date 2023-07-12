@@ -123,6 +123,7 @@ pub fn parse_out_bits(bytes_group: &str, n: usize) -> Vec<String> {
 }
 
 
+// to test the library: `cargo test -- --nocapture`
 #[cfg(test)]
 mod tests {
     use crate::{parse_buffer, print_bytes_in_groups, parse_out_bits};
