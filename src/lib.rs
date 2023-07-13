@@ -154,20 +154,26 @@ mod tests {
             parse_buffer(&arr_n, SIZE_BUFFER, SIZE_PARSING);
         println!("Values: {:?}", values);
         println!("Is incomplete: {}", is_incomplete);
-        println!("Length occupied: {}",SIZE_PARSING as usize - length_occupied);
+        println!(
+            "Length occupied: {}",
+            SIZE_PARSING as usize - length_occupied
+        );
 
         for value in &values {
             // println!("{:08b}", value);
             println!("value is: {:0width$b}", value, width = SIZE_BUFFER as usize);
         }
 
-        println!("\nThis part for parsing out {} bits out of a group of byte buffer:\n",SIZE_PARSING);
+        println!(
+            "\nThis part for parsing out {} bits out of a group of byte buffer:\n",
+            SIZE_PARSING
+        );
 
         // Print the bytes in groups of `n` bytes.
-        let bytes_group_list = print_bytes_in_groups(&values, SIZE_PARSING.into(), SIZE_BUFFER.into());
+        let bytes_group_list =
+            print_bytes_in_groups(&values, SIZE_PARSING.into(), SIZE_BUFFER.into());
 
         println!("{:?}", bytes_group_list);
-
 
         // break point referance
         let mut counter_len = arr_n.len();
