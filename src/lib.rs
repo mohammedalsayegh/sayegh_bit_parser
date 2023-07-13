@@ -1,14 +1,14 @@
 // Author Name: Mohammed Hashem Alsayegh
 
-pub fn parse_buffer(arr_n: &[u8], size_buffer: u8, size_parsing: u8) -> (Vec<u8>, bool, usize) {
+pub fn parse_buffer(arr_n: &[u32], size_buffer: u8, size_parsing: u8) -> (Vec<u32>, bool, usize) {
     // Length of the input data
     let len = arr_n.len();
 
     // Buffer-related variables
-    let mut buf: u8 = 0;
+    let mut buf: u32 = 0;
     let mut bitwise_location: u8 = size_buffer;
     let mut _bit_left: u8 = 0;
-    let mut _bit_fill_left: u8 = 0;
+    let mut _bit_fill_left: u32 = 0;
     let mut buf_cycle: u8 = 0;
     let mut buf_full = false;
 
@@ -16,7 +16,7 @@ pub fn parse_buffer(arr_n: &[u8], size_buffer: u8, size_parsing: u8) -> (Vec<u8>
     let mut last_i = 0;
 
     // Iterate through each byte of the input array
-    let mut values: Vec<u8> = Vec::new();
+    let mut values: Vec<u32> = Vec::new();
     let mut is_incomplete = false;
     for i in 0..len {
         // If the buffer is not full and buf_cycle is less than size_parsing,
@@ -34,7 +34,10 @@ pub fn parse_buffer(arr_n: &[u8], size_buffer: u8, size_parsing: u8) -> (Vec<u8>
             _bit_fill_left = arr_n[i] >> (size_parsing - _bit_left);
             buf |= _bit_fill_left;
 
-            //println!("Value: {}", buf);
+            let mask = 0xFFFFFFFF >> (32 - size_buffer);
+            buf &= mask;
+
+            // println!("Value: {}", buf);
             values.push(buf);
 
             // Reset the buffer and update the bitwise_location
@@ -60,7 +63,11 @@ pub fn parse_buffer(arr_n: &[u8], size_buffer: u8, size_parsing: u8) -> (Vec<u8>
     if buf_cycle % size_parsing != 0 {
         let i = last_i;
         buf |= arr_n[i] << bitwise_location;
-        //println!("Value: {}", buf);
+
+        let mask = 0xFFFFFFFF >> (32 - size_buffer);
+        buf &= mask;
+
+        // println!("last Value: {}", buf);
         values.push(buf);
         is_incomplete = true;
     }
@@ -69,7 +76,7 @@ pub fn parse_buffer(arr_n: &[u8], size_buffer: u8, size_parsing: u8) -> (Vec<u8>
 }
 
 // This function prints the bytes in groups of `n` bytes.
-pub fn print_bytes_in_groups(bytes: &[u8], n: usize, buf_size: usize) -> Vec<String> {
+pub fn print_bytes_in_groups(bytes: &[u32], n: usize, buf_size: usize) -> Vec<String> {
     // Declare variables.
     let mut i = 0;
     let mut _null_padding = String::new(); // The null padding string.
@@ -91,7 +98,9 @@ pub fn print_bytes_in_groups(bytes: &[u8], n: usize, buf_size: usize) -> Vec<Str
         // For each byte in the group, convert it to a binary string and append it to `joined_bytes`.
         for k in 0..n {
             if i + k < bytes.len() {
-                joined_bytes.push_str(format!("{:08b}", &bytes[i + k]).as_str());
+                let string = format!("{:0width$b}", &bytes[i + k], width = buf_size);
+                let string = string.as_str();
+                joined_bytes.push_str(&string);
             }
         }
 
@@ -122,47 +131,59 @@ pub fn parse_out_bits(bytes_group: &str, n: usize) -> Vec<String> {
     parsed_bits
 }
 
-
 // to test the library: `cargo test -- --nocapture`
 #[cfg(test)]
 mod tests {
-    use crate::{parse_buffer, print_bytes_in_groups, parse_out_bits};
-    
+    use crate::{parse_buffer, parse_out_bits, print_bytes_in_groups};
+
     // Constants for parsing and buffer size
     const SIZE_BUFFER: u8 = 8;
-    const SIZE_PARSING: u8 = 3;
+    const SIZE_PARSING: u8 = 4;
 
     #[test]
     fn test_parse_buffer() {
         println!("This part for parsing in 3 bits into a byte buffer:\n");
-        let arr_n: [u8; 13] = [
-            0b101, 0b001, 0b111, 0b001, 0b111, 0b000, 0b001, 0b010, 0b001, 0b011, 0b111, 0b001, 0b1110
+        let arr_n: [u32; 13] = [
+            0b0101, 0b1001, 0b0111, 0b0001, 0b0111, 0b0000, 0b1001, 0b0010, 0b1001, 0b0101, 0b0111,
+            0b01001, 0b1110,
         ];
 
-        let (values, is_incomplete, length_occupied) = parse_buffer(&arr_n, SIZE_BUFFER, SIZE_PARSING);
+        println!("arr_n is: {:?}", arr_n);
+
+        let (values, is_incomplete, length_occupied) =
+            parse_buffer(&arr_n, SIZE_BUFFER, SIZE_PARSING);
         println!("Values: {:?}", values);
         println!("Is incomplete: {}", is_incomplete);
-        println!("Length occupied: {}", 8 -length_occupied);
+        println!("Length occupied: {}",SIZE_PARSING as usize - length_occupied);
 
         for value in &values {
-            println!("{:08b}", value);
+            // println!("{:08b}", value);
+            println!("value is: {:0width$b}", value, width = SIZE_BUFFER as usize);
         }
 
-        println!("\nThis part for parsing out 3 bits out of a group of byte buffer:\n");
-
-        let n = 3;
-        let buf_size = 8;
+        println!("\nThis part for parsing out {} bits out of a group of byte buffer:\n",SIZE_PARSING);
 
         // Print the bytes in groups of `n` bytes.
-        let bytes_group_list = print_bytes_in_groups(&values, n, buf_size);
+        let bytes_group_list = print_bytes_in_groups(&values, SIZE_PARSING.into(), SIZE_BUFFER.into());
+
+        println!("{:?}", bytes_group_list);
+
+
+        // break point referance
+        let mut counter_len = arr_n.len();
 
         // For each bytes group, print the bits and the parsed bits.
         for bytes_group in &bytes_group_list {
-            println!("{}", bytes_group);
-            let parsed_bits = parse_out_bits(&bytes_group, n);
+            println!("\nbytes_group: {}", bytes_group);
+            let parsed_bits = parse_out_bits(&bytes_group, SIZE_PARSING.into());
             for parsed_bit in parsed_bits {
                 println!("{}", parsed_bit);
+
+                counter_len -= 1;
+                if 0 == counter_len {
+                    break;
+                }
             }
-        }    
+        }
     }
 }
