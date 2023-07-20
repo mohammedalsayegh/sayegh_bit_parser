@@ -1,6 +1,6 @@
 [package]
 name = "sayegh_bit_parser"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "A library that parses odd/even bits in serial mode in byte buffers and parses them out after grouping them in byte buffer group"
 license = "MIT"

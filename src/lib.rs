@@ -118,13 +118,14 @@ pub fn print_bytes_in_groups(bytes: &[u32], n: usize, buf_size: usize) -> Vec<St
 }
 
 // This function parses the bits out of a bytes group.
-pub fn parse_out_bits(bytes_group: &str, n: usize) -> Vec<String> {
+pub fn parse_out_bits(bytes_group: &str, n: usize) -> Vec<u32> {
     let mut parsed_bits = Vec::new();
     let mut i = 0;
 
     // For each `n` bytes in the bytes group, add the corresponding bits to `parsed_bits`.
     while i < bytes_group.len() {
-        parsed_bits.push(bytes_group[i..i + n].to_string());
+        let parsed_bit_str = u32::from_str_radix(&(bytes_group[i..i + n].to_string()), 2).unwrap();
+        parsed_bits.push(parsed_bit_str);
         i += n;
     }
 
@@ -138,14 +139,14 @@ mod tests {
 
     // Constants for parsing and buffer size
     const SIZE_BUFFER: u8 = 8;
-    const SIZE_PARSING: u8 = 4;
+    const SIZE_PARSING: u8 = 3;
 
     #[test]
     fn test_parse_buffer() {
         println!("This part for parsing in 3 bits into a byte buffer:\n");
         let arr_n: [u32; 13] = [
-            0b0101, 0b1001, 0b0111, 0b0001, 0b0111, 0b0000, 0b1001, 0b0010, 0b1001, 0b0101, 0b0111,
-            0b01001, 0b1110,
+            0b101, 0b001, 0b111, 0b001, 0b111, 0b000, 0b001, 0b010, 0b001, 0b101, 0b111,
+            0b001, 0b110,
         ];
 
         println!("arr_n is: {:?}", arr_n);
@@ -184,6 +185,7 @@ mod tests {
             let parsed_bits = parse_out_bits(&bytes_group, SIZE_PARSING.into());
             for parsed_bit in parsed_bits {
                 println!("{}", parsed_bit);
+                println!("{:0width$b}", parsed_bit, width = SIZE_PARSING as usize);
 
                 counter_len -= 1;
                 if 0 == counter_len {
